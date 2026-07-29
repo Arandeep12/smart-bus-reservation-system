@@ -1,43 +1,47 @@
 <div align="center">
 
-<!-- Modern Project Banner -->
-<pre style="font-family: monospace; font-weight: bold; color: #4F46E5;">
- ╔══════════════════════════════════════════════════════════════════════════════╗
- ║                                                                              ║
- ║    █████╗ ██████╗ ███████╗    ████████╗██████╗  █████╗ ███╗   ██╗███████╗    ║
- ║   ██╔══██╗██╔══██╗██╔════╝    ╚══██╔══╝██╔══██╗██╔══██╗████╗  ██║██╔════╝    ║
- ║   ███████║██║  ██║███████╗       ██║   ██████╔╝███████║██╔██╗ ██║███████╗    ║
- ║   ██╔══██║██║  ██║╚════██║       ██║   ██╔══██╗██╔══██║██║╚██╗██║╚════██║    ║
- ║   ██║  ██║██████╔╝███████║       ██║   ██║  ██║██║  ██║██║ ╚████║███████║    ║
- ║   ╚═╝  ╚═╝╚═════╝ ╚══════╝       ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝    ║
- ║                                                                              ║
- ║                SMART BUS RESERVATION SYSTEM — ADS TRANSIT PRO                ║
- ║                    Commercial Open-Source SaaS Platform                      ║
- ║                                                                              ║
- ╚══════════════════════════════════════════════════════════════════════════════╝
-</pre>
+  <br>
 
-### **Smart Bus Reservation System**
-*Next-Generation Intercity Bus Booking & Reservation SaaS Platform*
+  <!-- ADS Studio Logo Image Banner -->
+  <a href="https://github.com/Arandeep12/smart-bus-reservation-system">
+    <img src="static/ads_logo.jpg" alt="ADS Studio — ADS Transit Pro" width="240" style="border-radius: 16px; box-shadow: 0 12px 36px rgba(0,0,0,0.35); border: 1px solid rgba(212,175,55,0.4);">
+  </a>
 
-Designed & Developed by **[ADS Studio](https://github.com)** (Arandeep Singh Studio)
+  <br><br>
 
----
+  <!-- Product Title & Subtitle -->
+  <h1>ADS Transit Pro</h1>
+  <h3>Smart Bus Reservation System</h3>
 
-[![Python Version](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![Flask Version](https://img.shields.io/badge/Flask-3.0.3-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
-[![SQLite3](https://img.shields.io/badge/Database-SQLite3-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
-[![Frontend](https://img.shields.io/badge/Frontend-HTML5%20%7C%20CSS3%20%7C%20ES6%2B-E34F26?style=for-the-badge&logo=html5&logoColor=white)](https://developer.mozilla.org/)
-[![Responsive](https://img.shields.io/badge/Responsive-320px%20to%204K-22C55E?style=for-the-badge&logo=responsive&logoColor=white)](#responsive-design)
-[![License](https://img.shields.io/badge/License-MIT-blue.style=for-the-badge)](LICENSE)
+  <p>
+    <em>Enterprise-Grade Intercity Bus Booking & Reservation SaaS Platform</em>
+  </p>
 
----
+  <p>
+    Designed & Developed by <strong><a href="https://github.com/Arandeep12">ADS Studio</a></strong> (Arandeep Singh Studio)
+  </p>
+
+  <br>
+
+  <!-- Badges -->
+  <p>
+    <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python Version"></a>
+    <a href="https://flask.palletsprojects.com/"><img src="https://img.shields.io/badge/Flask-3.0.3-000000?style=for-the-badge&logo=flask&logoColor=white" alt="Flask Version"></a>
+    <a href="https://www.sqlite.org/"><img src="https://img.shields.io/badge/Database-SQLite3-003B57?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite3"></a>
+    <a href="https://developer.mozilla.org/"><img src="https://img.shields.io/badge/Frontend-HTML5%20%7C%20CSS3%20%7C%20ES6%2B-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="Frontend Stack"></a>
+    <a href="#-responsive-screen-compatibility"><img src="https://img.shields.io/badge/Responsive-320px%20to%204K-22C55E?style=for-the-badge&logo=responsive&logoColor=white" alt="Responsive"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="License"></a>
+  </p>
+
+  <br>
 
 </div>
 
+---
+
 ## 📌 Executive Summary
 
-**Smart Bus Reservation System** (commercial title: **ADS Transit Pro**) is an enterprise-grade, full-stack intercity bus reservation platform built to deliver an airline-quality seat booking experience. Designed from the ground up by **ADS Studio**, the application features real-time interactive seat layouts, instant QR code e-ticket generation, dynamic fare calculation, multi-device mobile-first responsive interfaces, and a feature-rich admin dashboard.
+**ADS Transit Pro** (Smart Bus Reservation System) is an enterprise-grade, full-stack intercity bus reservation platform built to deliver an airline-quality seat booking experience. Designed from the ground up by **ADS Studio**, the application features real-time interactive seat layouts, instant QR code e-ticket generation, dynamic fare calculation, multi-device mobile-first responsive interfaces, and a feature-rich admin dashboard.
 
 Engineered with **Python Flask**, **SQLite3**, and a custom **CSS Glassmorphism Design System**, ADS Transit Pro combines high-concurrency seat reservation logic with an intuitive human-centered user interface.
 
@@ -110,7 +114,7 @@ busReservationFinal/
 
 ## ⚡ Quickstart & Installation
 
-Follow these steps to set up and run **Smart Bus Reservation System** locally on your machine.
+Follow these steps to set up and run **ADS Transit Pro** locally on your machine.
 
 ### Prerequisites
 - **Python 3.10** or higher installed
@@ -118,8 +122,8 @@ Follow these steps to set up and run **Smart Bus Reservation System** locally on
 
 ### Step 1: Clone the Repository
 ```bash
-git clone https://github.com/ads-studio/smart-bus-reservation.git
-cd smart-bus-reservation
+git clone https://github.com/Arandeep12/smart-bus-reservation-system.git
+cd smart-bus-reservation-system
 ```
 
 ### Step 2: Set Up Virtual Environment (Recommended)
@@ -210,7 +214,7 @@ Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for details.
 
 ## 👨‍💻 Author & Credits
 
-Designed & Developed with ❤️ by **[ADS Studio](https://github.com)** (Arandeep Singh Studio).
+Designed & Developed with ❤️ by **[ADS Studio](https://github.com/Arandeep12)** (Arandeep Singh Studio).
 
 - **Project Lead**: Arandeep Singh
 - **Organization**: ADS Studio
