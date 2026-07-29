@@ -75,6 +75,7 @@ Engineered with **Python Flask**, **SQLite3**, and a custom **CSS Glassmorphism 
 | Component | Technology / Library | Purpose |
 | :--- | :--- | :--- |
 | **Backend Core** | Python 3.10+ / Flask 3.0 | Application server, routing, session handling |
+| **WSGI Server** | Gunicorn 21.2+ | Production-grade HTTP WSGI server for Cloud / Render |
 | **Database** | SQLite3 | Relational data store for routes, buses, seats, & bookings |
 | **QR Code Engine** | `qrcode` + `Pillow` (PIL) | Dynamic matrix QR code rendering for tickets |
 | **Frontend Styling** | Custom CSS3 Custom Properties | Glassmorphism design system, grid, flexbox, clamp() typography |
@@ -86,12 +87,13 @@ Engineered with **Python Flask**, **SQLite3**, and a custom **CSS Glassmorphism 
 ## 📁 Repository Structure
 
 ```text
-busReservationFinal/
-├── app.py                  # Main Flask application & API routes
-├── init_db.py              # Database schema initialization script
+smart-bus-reservation-system/
+├── app.py                  # Main Flask application & WSGI entry point
+├── init_db.py              # Database schema initializer (Auto-run on startup)
 ├── seed_db.py              # Mock data generator (Routes, Buses, Seats)
-├── database.db             # SQLite3 database (runtime generated)
-├── requirements.txt        # Python package dependencies
+├── Procfile                # Heroku / Render deployment process file
+├── render.yaml             # Render Blueprint Infrastructure-as-Code
+├── requirements.txt        # Python package dependencies (Flask, Gunicorn, etc.)
 ├── LICENSE                 # Open-source MIT License
 ├── README.md               # Repository documentation
 ├── .gitignore              # Ignored files & runtime environment rules
@@ -157,6 +159,30 @@ python app.py
 ```
 
 Open your browser and navigate to **`http://127.0.0.1:5000`**.
+
+---
+
+## 🌐 Deploying to Render
+
+**ADS Transit Pro** is fully pre-configured for instant zero-downtime deployment on **[Render](https://render.com)**.
+
+### Option A: Automatic Blueprint Deployment (Recommended)
+1. Fork or push this repository to your GitHub account (`Arandeep12/smart-bus-reservation-system`).
+2. Log in to [Render Dashboard](https://dashboard.render.com/) and click **New +** → **Blueprint**.
+3. Connect your GitHub repository.
+4. Render will automatically detect `render.yaml` and configure the Web Service with:
+   - **Environment**: `Python`
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `gunicorn app:app`
+5. Click **Apply**. Render will build and deploy the web service automatically.
+
+### Option B: Manual Web Service Setup on Render
+If configuring manually without `render.yaml`:
+- **Service Type**: Web Service
+- **Environment**: Python 3
+- **Build Command**: `pip install -r requirements.txt`
+- **Start Command**: `gunicorn app:app`
+- **Auto Database Setup**: The application automatically checks and initializes `database.db` with default routes and sample buses on first launch.
 
 ---
 

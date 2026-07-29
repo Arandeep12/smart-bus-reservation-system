@@ -8,14 +8,19 @@ Developed & Architected by ADS Studio (Arandeep Singh Studio)
 import base64
 from datetime import datetime
 import io
+import os
 import sqlite3
 import uuid
 from flask import Flask, flash, redirect, render_template, request, url_for
 import qrcode
+from init_db import ensure_db_exists
+
+# Initialize Database on Application Startup
+ensure_db_exists()
 
 # Initialize Flask Application
 app = Flask(__name__)
-app.secret_key = 'supersecretkey'
+app.secret_key = os.environ.get('SECRET_KEY', 'supersecretkey')
 
 def get_db_connection():
     """Establish and return a SQLite database connection with row factory."""
@@ -246,4 +251,5 @@ def add_bus():
     return redirect(url_for('admin'))
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)

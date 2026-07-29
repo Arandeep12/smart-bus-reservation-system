@@ -1,0 +1,15 @@
+# Render Infrastructure-as-Code Configuration
+# Service: ADS Transit Pro (Smart Bus Reservation System)
+# Developed by ADS Studio
+
+services:
+  - type: web
+    name: ads-transit-pro
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.12
+      - key: SECRET_KEY
+        generateValue: true

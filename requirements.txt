@@ -1,6 +1,7 @@
-# Smart Bus Reservation System — Dependency Requirements
+# Smart Bus Reservation System (ADS Transit Pro) — Production Requirements
 # Developed by ADS Studio
 
 Flask>=3.0.0
+gunicorn>=21.2.0
 qrcode>=7.4.0
 Pillow>=10.0.0
