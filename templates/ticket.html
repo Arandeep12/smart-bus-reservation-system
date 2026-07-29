@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="confirmation-page">
+    <div class="container-custom confirmation-container">
+
+        <!-- Success Header -->
+        <div class="success-header">
+            <div class="success-icon-wrap">
+                <i data-lucide="check-circle" style="width:48px;height:48px;"></i>
+            </div>
+            <h1 class="page-title" style="color:var(--text);margin-bottom:4px;">Booking Confirmed!</h1>
+            <p style="color:var(--text-secondary);font-size:var(--text-sm);">Your e-ticket has been generated and sent to {{ booking.email }}</p>
+            <div style="margin-top:12px;">
+                <button type="button" class="badge-custom badge-gold" onclick="copyRef('{{ booking.booking_ref }}')" title="Click to copy booking reference" style="cursor:pointer;padding:6px 16px;font-size:var(--text-sm);">
+                    <i data-lucide="copy" style="width:14px;height:14px;"></i> Ref: {{ booking.booking_ref }}
+                </button>
+            </div>
+        </div>
+
+        <!-- Ticket Card -->
+        <div class="ticket-card" id="ticketContent">
+            <div class="ticket-gradient-bar"></div>
+            <div class="ticket-body">
+
+                <!-- Header Branding -->
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-md);padding-bottom:var(--space-sm);border-bottom:1px solid var(--border);">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <img src="{{ url_for('static', filename='ads_logo_square.jpg') }}" alt="ADS Studio Logo" style="height:32px;width:auto;border-radius:4px;">
+                        <div>
+                            <div style="font-weight:900;font-size:var(--text-sm);color:var(--text);">ADS Transit Pro</div>
+                            <div style="font-size:0.65rem;color:var(--gold-dark);font-weight:600;">e-Ticket Pass</div>
+                        </div>
+                    </div>
+                    <span class="badge-custom badge-success"><i data-lucide="check-check"></i> {{ booking.payment_status }}</span>
+                </div>
+
+                <!-- Route -->
+                <div class="ticket-route">
+                    <div style="text-align:center;">
+                        <div class="ticket-city-name">{{ booking.source }}</div>
+                        <div style="font-size:var(--text-xs);color:var(--text-muted);text-transform:uppercase;font-weight:700;">Departure</div>
+                    </div>
+                    <div style="color:var(--primary);display:flex;flex-direction:column;align-items:center;">
+                        <i data-lucide="arrow-right" style="width:28px;height:28px;"></i>
+                        <span style="font-size:0.65rem;color:var(--text-muted);font-weight:700;">DIRECT</span>
+                    </div>
+                    <div style="text-align:center;">
+                        <div class="ticket-city-name">{{ booking.destination }}</div>
+                        <div style="font-size:var(--text-xs);color:var(--text-muted);text-transform:uppercase;font-weight:700;">Arrival</div>
+                    </div>
+                </div>
+
+                <!-- Ticket Details Grid -->
+                <div class="ticket-details-grid">
+                    <div>
+                        <div class="ticket-detail-label">Passenger Name</div>
+                        <div class="ticket-detail-value">{{ booking.name }}</div>
+                    </div>
+                    <div>
+                        <div class="ticket-detail-label">Bus Number</div>
+                        <div class="ticket-detail-value">{{ booking.bus_number }}</div>
+                    </div>
+                    <div>
+                        <div class="ticket-detail-label">Journey Date</div>
+                        <div class="ticket-detail-value">{{ booking.date }}</div>
+                    </div>
+                    <div>
+                        <div class="ticket-detail-label">Schedule</div>
+                        <div class="ticket-detail-value">{{ booking.departure_time }} — {{ booking.arrival_time }}</div>
+                    </div>
+                    <div>
+                        <div class="ticket-detail-label">Seat Number(s)</div>
+                        <div class="ticket-detail-value" style="color:var(--primary);">{{ booking.seat_numbers }}</div>
+                    </div>
+                    <div>
+                        <div class="ticket-detail-label">Contact Details</div>
+                        <div class="ticket-detail-value" style="font-size:var(--text-xs);">{{ booking.phone }}</div>
+                    </div>
+                </div>
+
+                <!-- QR Code & Amount -->
+                <div class="ticket-qr-section">
+                    <div>
+                        <img src="data:image/png;base64,{{ qr_base64 }}" alt="QR Code for booking {{ booking.booking_ref }}">
+                        <div style="font-size:0.65rem;color:var(--text-muted);text-align:center;margin-top:4px;">Scan at boarding</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:var(--text-xs);color:var(--text-muted);text-transform:uppercase;font-weight:700;">Total Amount Paid</div>
+                        <div style="font-size:var(--text-2xl);font-weight:900;color:var(--primary);line-height:1;">₹{{ booking.total_price }}</div>
+                        <div style="font-size:0.7rem;color:var(--success);font-weight:700;margin-top:4px;"><i data-lucide="shield-check" style="width:12px;height:12px;vertical-align:middle;"></i> Verified Payment</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="ticket-actions">
+            <button type="button" class="btn-primary-gradient" onclick="downloadPDF()">
+                <i data-lucide="download"></i> Download PDF Ticket
+            </button>
+            <button type="button" class="btn-secondary-custom" onclick="window.print()">
+                <i data-lucide="printer"></i> Print Ticket
+            </button>
+            <a href="/" class="btn-outline-custom">
+                <i data-lucide="plus"></i> Book Another Trip
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function copyRef(ref) {
+        navigator.clipboard.writeText(ref);
+        showToast('Booking reference copied to clipboard!', 'success');
+    }
+
+    function downloadPDF() {
+        const element = document.getElementById('ticketContent');
+        const opt = {
+            margin:       0.4,
+            filename:     'Ticket_{{ booking.booking_ref }}.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
+        showToast('Downloading ticket PDF...', 'info');
+    }
+</script>
+{% endblock %}

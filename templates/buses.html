@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container-custom">
+        <ul class="breadcrumb-custom">
+            <li><a href="/">Home</a></li>
+            <li><i data-lucide="chevron-right" style="width:14px;height:14px;"></i></li>
+            <li class="active">Search Results</li>
+        </ul>
+        <h1 class="page-title">{{ source }} <i data-lucide="arrow-right" style="vertical-align:middle;display:inline-block;margin:0 4px;"></i> {{ destination }}</h1>
+        <p class="page-subtitle">
+            <i data-lucide="calendar" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;"></i>
+            Journey Date: <strong>{{ date }}</strong>
+        </p>
+    </div>
+</div>
+
+<!-- Bus List Section -->
+<div class="bus-list-section">
+    <div class="container-custom">
+        {% if buses %}
+        <!-- Creative Feature: Live Search & Sorting Bar -->
+        <div class="bus-filter-bar">
+            <div>
+                <span style="font-weight:700;font-size:var(--text-sm);color:var(--text);">Available Buses ({{ buses|length }})</span>
+            </div>
+            <div class="bus-filter-group">
+                <!-- Filter Type -->
+                <select id="filterType" class="form-select-custom" style="padding:6px 32px 6px 12px;min-height:36px;font-size:var(--text-xs);" onchange="filterBuses()">
+                    <option value="All">All Bus Types</option>
+                    <option value="AC">AC Only</option>
+                    <option value="Non-AC">Non-AC Only</option>
+                    <option value="Sleeper">Sleeper Only</option>
+                </select>
+
+                <!-- Sort By -->
+                <select id="sortBy" class="form-select-custom" style="padding:6px 32px 6px 12px;min-height:36px;font-size:var(--text-xs);" onchange="sortBuses()">
+                    <option value="default">Sort by: Recommended</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                    <option value="departure">Departure Time</option>
+                </select>
+
+                <a href="/" class="btn-outline-custom" style="padding:6px 16px;min-height:36px;font-size:var(--text-xs);">
+                    <i data-lucide="edit-3"></i> Modify Search
+                </a>
+            </div>
+        </div>
+
+        <div id="busContainer">
+            {% for bus in buses %}
+            <div class="bus-card" data-type="{{ bus.bus_type }}" data-price="{{ bus.price }}" data-dept="{{ bus.departure_time }}">
+                <div class="bus-card-left">
+                    <div class="bus-card-header">
+                        <span class="bus-name">{{ bus.bus_number }}</span>
+                        <span class="bus-type-badge {% if bus.bus_type == 'AC' %}bus-type-ac{% elif bus.bus_type == 'Non-AC' %}bus-type-nonac{% else %}bus-type-sleeper{% endif %}">
+                            {{ bus.bus_type }}
+                        </span>
+                        <span class="badge-custom badge-neutral">
+                            <i data-lucide="armchair" style="width:12px;height:12px;"></i>
+                            {{ bus.total_seats }} total seats
+                        </span>
+                    </div>
+
+                    <div class="bus-timeline">
+                        <div>
+                            <div class="bus-time-value">{{ bus.departure_time }}</div>
+                            <div class="bus-time-label">{{ source }}</div>
+                        </div>
+                        <div class="bus-timeline-line"></div>
+                        <div>
+                            <div class="bus-time-value">{{ bus.arrival_time }}</div>
+                            <div class="bus-time-label">{{ destination }}</div>
+                        </div>
+                    </div>
+
+                    <div class="bus-amenities">
+                        {% if 'AC' in bus.bus_type or 'Sleeper' in bus.bus_type %}
+                        <span class="amenity-tag" title="Air Conditioned"><i data-lucide="wind" style="width:12px;height:12px;"></i> AC</span>
+                        {% endif %}
+                        <span class="amenity-tag" title="High-Speed WiFi"><i data-lucide="wifi" style="width:12px;height:12px;"></i> WiFi</span>
+                        <span class="amenity-tag" title="Charging Port"><i data-lucide="zap" style="width:12px;height:12px;"></i> Charging</span>
+                        <span class="amenity-tag" title="CCTV Monitored"><i data-lucide="shield" style="width:12px;height:12px;"></i> CCTV</span>
+                        {% if bus.bus_type == 'Sleeper' %}
+                        <span class="amenity-tag" title="Reclining Sleeper Berth"><i data-lucide="bed" style="width:12px;height:12px;"></i> Sleeper</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="bus-card-right">
+                    <div style="display:flex;align-items:center;gap:4px;font-weight:700;font-size:var(--text-xs);color:var(--warning);">
+                        <i data-lucide="star" style="width:14px;height:14px;" fill="currentColor"></i>
+                        <span>4.{{ (loop.index % 3) + 7 }} / 5</span>
+                    </div>
+
+                    <div style="text-align:right;">
+                        <div class="bus-price-value">₹{{ bus.price }}</div>
+                        <div class="bus-price-label">per passenger</div>
+                    </div>
+
+                    <span class="badge-custom badge-success" style="font-size:var(--text-xs);">
+                        <i data-lucide="check" style="width:12px;height:12px;"></i> Seats Available
+                    </span>
+
+                    <a href="/book/{{ bus.id }}?date={{ date }}" class="btn-primary-gradient" style="width:100%;">
+                        Select Seats <i data-lucide="arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% else %}
+        <!-- Empty State -->
+        <div style="text-align:center;padding:64px 20px;background:var(--card);border-radius:var(--radius-2xl);border:1px solid var(--border);">
+            <i data-lucide="bus-front" style="width:64px;height:64px;color:var(--text-muted);margin-bottom:16px;"></i>
+            <h3 style="font-size:var(--text-xl);font-weight:800;margin-bottom:8px;">No Buses Available</h3>
+            <p style="color:var(--text-secondary);margin-bottom:24px;">We couldn't find any buses running between {{ source }} and {{ destination }} on {{ date }}.</p>
+            <a href="/" class="btn-primary-gradient"><i data-lucide="search"></i> Search Different Date / Route</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function filterBuses() {
+        const type = document.getElementById('filterType').value;
+        const cards = document.querySelectorAll('.bus-card');
+        cards.forEach(card => {
+            if (type === 'All' || card.getAttribute('data-type') === type) {
+                card.style.display = 'grid';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    function sortBuses() {
+        const sortBy = document.getElementById('sortBy').value;
+        const container = document.getElementById('busContainer');
+        const cards = Array.from(document.querySelectorAll('.bus-card'));
+
+        if (sortBy === 'price-low') {
+            cards.sort((a, b) => parseFloat(a.getAttribute('data-price')) - parseFloat(b.getAttribute('data-price')));
+        } else if (sortBy === 'price-high') {
+            cards.sort((a, b) => parseFloat(b.getAttribute('data-price')) - parseFloat(a.getAttribute('data-price')));
+        } else if (sortBy === 'departure') {
+            cards.sort((a, b) => a.getAttribute('data-dept').localeCompare(b.getAttribute('data-dept')));
+        }
+
+        cards.forEach(card => container.appendChild(card));
+    }
+</script>
+{% endblock %}

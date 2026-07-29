@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>ADS Transit Pro — Premium Bus Reservation Software</title>
+    <meta name="description" content="ADS Transit Pro by ADS Studio (Arandeep Singh Studio) — Enterprise intercity bus reservation platform. Real-time seat selection, instant QR tickets, and secure bookings across India.">
+
+    <!-- Favicon Links -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='favicon.png') }}">
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <!-- html2pdf for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <!-- Splash / Loading Screen -->
+    <div class="splash-screen" id="splashScreen">
+        <div class="splash-logo-container">
+            <img src="{{ url_for('static', filename='ads_logo.jpg') }}" alt="ADS Studio Logo" class="splash-logo-img">
+            <div class="splash-logo-text">ADS Transit Pro</div>
+            <div class="splash-subtitle">Designed & Developed by ADS Studio</div>
+            <div class="splash-loader"></div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div class="toast-container" id="toastContainer" role="alert" aria-live="polite"></div>
+
+    <!-- Top Sticky Navbar -->
+    <nav class="navbar-custom" id="mainNav" role="navigation" aria-label="Main navigation">
+        <div class="navbar-inner">
+            <a href="/" class="navbar-brand-custom" aria-label="ADS Transit Pro Home">
+                <img src="{{ url_for('static', filename='ads_logo_square.jpg') }}" alt="ADS Studio Logo" class="brand-logo-img">
+                <div class="brand-text-group">
+                    <span class="brand-name">ADS Transit Pro</span>
+                    <span class="brand-tagline">by ADS Studio</span>
+                </div>
+            </a>
+
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle Navigation Menu" aria-expanded="false">
+                <i data-lucide="menu"></i>
+            </button>
+
+            <ul class="navbar-nav-custom" id="navMenu">
+                <li><a href="/" class="nav-link-custom active" aria-label="Home">Home</a></li>
+                <li><a href="/#about" class="nav-link-custom" aria-label="About ADS Studio">About</a></li>
+                <li><a href="/#features" class="nav-link-custom" aria-label="Features">Features</a></li>
+                <li><a href="/admin" class="nav-link-custom" aria-label="Admin Panel">Admin</a></li>
+                <li><a href="/" class="nav-link-custom nav-cta">Book Ticket</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flash-container" role="alert" aria-live="polite">
+                {% for message in messages %}
+                <div class="flash-message" onclick="this.remove();">
+                    <i data-lucide="alert-circle" style="color:var(--warning);flex-shrink:0;"></i>
+                    <span style="flex:1;">{{ message }}</span>
+                    <i data-lucide="x" style="cursor:pointer;color:var(--text-muted);" onclick="event.stopPropagation(); this.parentElement.remove();"></i>
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Page Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer-custom">
+        <div class="container-custom">
+            <div class="footer-grid">
+                <div>
+                    <div class="footer-brand">
+                        <img src="{{ url_for('static', filename='ads_logo.jpg') }}" alt="ADS Studio Logo" class="footer-logo-img">
+                        <div>
+                            <div class="footer-brand-text">ADS Transit Pro</div>
+                            <div class="footer-subtext">by ADS Studio</div>
+                        </div>
+                    </div>
+                    <p class="footer-desc">Enterprise intercity bus reservation platform designed & developed by ADS Studio (Arandeep Singh Studio). Architected for performance, security, and exceptional user experience.</p>
+                </div>
+                <div>
+                    <h4 class="footer-heading">Product</h4>
+                    <ul class="footer-links">
+                        <li><a href="/">Book Tickets</a></li>
+                        <li><a href="/#routes">Popular Routes</a></li>
+                        <li><a href="/#features">Features</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer-heading">Company</h4>
+                    <ul class="footer-links">
+                        <li><a href="/#about">About ADS Studio</a></li>
+                        <li><a href="#">Arandeep Singh Studio</a></li>
+                        <li><a href="/admin">Admin Portal</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer-heading">Legal</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Refund Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span>Designed & Developed by <strong>ADS Studio</strong> (Arandeep Singh Studio)</span>
+                <span>&copy; 2026 ADS Studio. All Rights Reserved.</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Global JavaScript -->
+    <script>
+        // Hide Splash Screen
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                const splash = document.getElementById('splashScreen');
+                if (splash) splash.classList.add('hidden');
+            }, 1000);
+        });
+
+        // Navbar Scroll Handler
+        const nav = document.getElementById('mainNav');
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 30) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+
+        // Mobile Nav Toggle
+        const navToggle = document.getElementById('navToggle');
+        const navMenu = document.getElementById('navMenu');
+        if (navToggle && navMenu) {
+            navToggle.addEventListener('click', function() {
+                navMenu.classList.toggle('open');
+                const isExpanded = navMenu.classList.contains('open');
+                navToggle.setAttribute('aria-expanded', isExpanded);
+            });
+        }
+
+        // Global Toast Trigger Function
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            
+            let iconName = 'info';
+            if (type === 'success') iconName = 'check-circle';
+            if (type === 'warning') iconName = 'alert-triangle';
+            if (type === 'danger') iconName = 'x-circle';
+
+            toast.innerHTML = `
+                <i data-lucide="${iconName}"></i>
+                <span style="flex:1;">${message}</span>
+                <i data-lucide="x" style="cursor:pointer;opacity:0.6;" onclick="this.parentElement.remove();"></i>
+            `;
+
+            container.appendChild(toast);
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(10px)';
+                toast.style.transition = 'all 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // Initialize Lucide Icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>
