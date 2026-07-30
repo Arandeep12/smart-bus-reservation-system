@@ -520,4 +520,12 @@ def trigger_seed():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    try:
+        app.run(host='0.0.0.0', port=port, debug=False)
+    except OSError as e:
+        if 'Address already in use' in str(e) or getattr(e, 'errno', None) == 48:
+            print("\n[ADS Transit Pro] Port 5000 is reserved by macOS AirPlay Receiver. Launching on http://127.0.0.1:5050/\n")
+            app.run(host='0.0.0.0', port=5050, debug=False)
+        else:
+            raise e
+
