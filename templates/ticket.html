@@ -10,7 +10,7 @@
                 <i data-lucide="check-circle" style="width:48px;height:48px;"></i>
             </div>
             <h1 class="page-title" style="color:var(--text);margin-bottom:4px;">Booking Confirmed!</h1>
-            <p style="color:var(--text-secondary);font-size:var(--text-sm);">Your e-ticket has been generated and sent to <strong>{{ booking.email }}</strong></p>
+            <p style="color:var(--text-secondary);font-size:var(--text-sm);">Your e-ticket pass has been generated and sent to <strong>{{ booking.email }}</strong></p>
             <div style="margin-top:12px;">
                 <button type="button" class="badge-custom badge-gold" onclick="copyRef('{{ booking.booking_ref }}')" title="Click to copy booking reference" style="cursor:pointer;padding:6px 16px;font-size:var(--text-sm);">
                     <i data-lucide="copy" style="width:14px;height:14px;"></i> Ref: {{ booking.booking_ref }}
@@ -29,7 +29,7 @@
                         <img src="{{ url_for('static', filename='ads_logo_square.jpg') }}" alt="ADS Studio Logo" style="height:32px;width:auto;border-radius:4px;">
                         <div>
                             <div style="font-weight:900;font-size:var(--text-sm);color:var(--text);">ADS Transit Pro</div>
-                            <div style="font-size:0.65rem;color:var(--gold-dark);font-weight:600;">Official e-Ticket Pass</div>
+                            <div style="font-size:0.65rem;color:var(--gold-dark);font-weight:600;">Official Commercial e-Ticket Pass</div>
                         </div>
                     </div>
                     <span class="badge-custom badge-success"><i data-lucide="check-check"></i> {{ booking.payment_status }}</span>
@@ -43,7 +43,7 @@
                     </div>
                     <div style="color:var(--primary);display:flex;flex-direction:column;align-items:center;">
                         <i data-lucide="arrow-right" style="width:28px;height:28px;"></i>
-                        <span style="font-size:0.65rem;color:var(--text-muted);font-weight:700;">INTERCITY</span>
+                        <span style="font-size:0.65rem;color:var(--text-muted);font-weight:700;">INTERCITY DIRECT</span>
                     </div>
                     <div style="text-align:center;">
                         <div class="ticket-city-name">{{ booking.destination }}</div>
@@ -96,16 +96,17 @@
 
         <!-- Action Buttons -->
         <div class="ticket-actions">
-            <button type="button" class="btn-primary-gradient" onclick="downloadPDF()">
-                <i data-lucide="download"></i> Download PDF Ticket
-            </button>
-            <button type="button" class="btn-secondary-custom" onclick="window.print()">
-                <i data-lucide="printer"></i> Print Ticket
-            </button>
+            <a href="/ticket/{{ booking.booking_ref }}/pdf?download=1" target="_blank" class="btn-primary-gradient">
+                <i data-lucide="download"></i> Download Commercial PDF Ticket
+            </a>
+            <a href="/ticket/{{ booking.booking_ref }}/print" target="_blank" class="btn-secondary-custom">
+                <i data-lucide="printer"></i> Standalone Print View (A4)
+            </a>
             <a href="/" class="btn-outline-custom">
                 <i data-lucide="plus"></i> Book Another Trip
             </a>
         </div>
+
 
     </div>
 </div>
@@ -116,19 +117,6 @@
     function copyRef(ref) {
         navigator.clipboard.writeText(ref);
         showToast('Booking reference copied to clipboard!', 'success');
-    }
-
-    function downloadPDF() {
-        const element = document.getElementById('ticketContent');
-        const opt = {
-            margin:       0.4,
-            filename:     'Ticket_{{ booking.booking_ref }}.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2 },
-            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-        };
-        html2pdf().set(opt).from(element).save();
-        showToast('Downloading ticket PDF...', 'info');
     }
 </script>
 {% endblock %}

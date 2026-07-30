@@ -12,8 +12,9 @@ import os
 import random
 import sqlite3
 import uuid
-from flask import Flask, flash, jsonify, redirect, render_template, request, url_for
+from flask import Flask, flash, jsonify, redirect, render_template, request, url_for, send_file
 import qrcode
+from xhtml2pdf import pisa
 
 from init_db import DB_PATH, ensure_db_exists
 
@@ -366,13 +367,12 @@ def book(bus_id):
 
     return render_template('booking.html', bus=bus, date=date, booked_seats=booked_seats)
 
-@app.route('/ticket/<booking_ref>')
-def ticket(booking_ref):
-    """Render confirmed e-Ticket pass with base64 encoded QR verification code."""
+def fetch_ticket_details(booking_ref):
+    """Retrieve full booking data, generate QR code base64 payload, and calculate itemized fare summary."""
     conn = get_db_connection()
     booking = conn.execute('''
         SELECT b.*, u.name, u.email, u.phone, u.age, u.gender,
-               bus.bus_number, bus.operator_name, bus.bus_type, bus.departure_time, bus.arrival_time,
+               bus.bus_number, bus.operator_name, bus.bus_type, bus.departure_time, bus.arrival_time, bus.price as seat_price,
                sd.name as source, ss.name as source_state,
                dd.name as destination, ds.name as destination_state
         FROM bookings b
@@ -388,7 +388,7 @@ def ticket(booking_ref):
     conn.close()
 
     if not booking:
-        return "e-Ticket record not found", 404
+        return None, None, 0, 0, 0, None
 
     # Generate QR verification payload
     qr_payload = f"ADS TRANSIT PRO e-TICKET\nRef: {booking['booking_ref']}\nPassenger: {booking['name']}\nRoute: {booking['source']} ({booking['source_state']}) -> {booking['destination']} ({booking['destination_state']})\nBus: {booking['bus_number']} ({booking['operator_name']})\nDate: {booking['date']}\nSeats: {booking['seat_numbers']}\nStatus: VERIFIED PAID"
@@ -403,7 +403,92 @@ def ticket(booking_ref):
     img_io.seek(0)
     qr_base64 = base64.b64encode(img_io.getvalue()).decode('utf-8')
 
-    return render_template('ticket.html', booking=booking, qr_base64=qr_base64)
+    # Base64 logo for standalone / PDF rendering
+    logo_path = os.path.join(app.root_path, 'static', 'ads_logo_square.jpg')
+    logo_base64 = ""
+    if os.path.exists(logo_path):
+        with open(logo_path, 'rb') as f:
+            logo_base64 = base64.b64encode(f.read()).decode('utf-8')
+
+    # Calculate fare breakdown
+    passengers_count = booking['passengers_count'] or 1
+    base_fare = passengers_count * (booking['seat_price'] or 0)
+    gst = base_fare * 0.05
+    conv_fee = 29.0
+
+    return booking, qr_base64, base_fare, gst, conv_fee, logo_base64
+
+@app.route('/ticket/<booking_ref>')
+def ticket(booking_ref):
+    """Render confirmed e-Ticket pass with base64 encoded QR verification code."""
+    booking, qr_base64, base_fare, gst, conv_fee, logo_base64 = fetch_ticket_details(booking_ref)
+    if not booking:
+        return "e-Ticket record not found", 404
+
+    return render_template(
+        'ticket.html',
+        booking=booking,
+        qr_base64=qr_base64,
+        logo_base64=logo_base64,
+        base_fare=base_fare,
+        gst=gst,
+        conv_fee=conv_fee
+    )
+
+@app.route('/ticket/<booking_ref>/print')
+def ticket_print(booking_ref):
+    """Render dedicated zero-margin A4 printable e-Ticket layout for browser print."""
+    booking, qr_base64, base_fare, gst, conv_fee, logo_base64 = fetch_ticket_details(booking_ref)
+    if not booking:
+        return "e-Ticket record not found", 404
+
+    return render_template(
+        'ticket_print.html',
+        booking=booking,
+        qr_base64=qr_base64,
+        logo_base64=logo_base64,
+        base_fare=base_fare,
+        gst=gst,
+        conv_fee=conv_fee,
+        is_pdf_export=False
+    )
+
+@app.route('/ticket/<booking_ref>/pdf')
+def ticket_pdf(booking_ref):
+    """Generate and serve binary single-page A4 PDF file using xhtml2pdf engine."""
+    booking, qr_base64, base_fare, gst, conv_fee, logo_base64 = fetch_ticket_details(booking_ref)
+    if not booking:
+        return "e-Ticket record not found", 404
+
+    rendered_html = render_template(
+        'ticket_print.html',
+        booking=booking,
+        qr_base64=qr_base64,
+        logo_base64=logo_base64,
+        base_fare=base_fare,
+        gst=gst,
+        conv_fee=conv_fee,
+        is_pdf_export=True
+    )
+
+    pdf_buffer = io.BytesIO()
+    pisa_status = pisa.CreatePDF(rendered_html, dest=pdf_buffer)
+
+    if pisa_status.err:
+        return f"Error generating PDF ticket: {pisa_status.err}", 500
+
+    pdf_buffer.seek(0)
+    download_arg = request.args.get('download', '0')
+    as_attachment = True if download_arg == '1' else False
+
+    return send_file(
+        pdf_buffer,
+        mimetype='application/pdf',
+        as_attachment=as_attachment,
+        download_name=f"ADS-Transit-Pass-{booking['booking_ref']}.pdf"
+    )
+
+
 
 @app.route('/admin', methods=['GET'])
 def admin():

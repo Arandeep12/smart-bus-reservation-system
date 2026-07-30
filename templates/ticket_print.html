@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>e-Ticket Pass — {{ booking.booking_ref }} — ADS Transit Pro</title>
+    
+    {% if not is_pdf_export %}
+    <!-- Google Fonts: Inter for Browser View -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    {% endif %}
+
+    <style>
+        /* ----------------------------------------------------
+           Commercial Single-Page A4 / Letter PDF Print CSS
+           ---------------------------------------------------- */
+        @page {
+            size: A4 portrait;
+            margin: 8mm 10mm;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            background-color: #F8FAFC;
+            font-family: 'Inter', Helvetica, Arial, sans-serif;
+            color: #0F172A;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            font-size: 11px;
+        }
+
+
+        .print-page-wrapper {
+            width: 100%;
+            max-width: 190mm;
+            margin: 0 auto;
+            padding: 0;
+        }
+
+        /* Interactive Screen Action Bar (Hidden in PDF / Print) */
+        .print-actions-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 12px 0 16px 0;
+            padding: 12px 18px;
+            background: #0F172A;
+            color: #FFFFFF;
+            border-radius: 10px;
+            box-shadow: 0 4px 14px rgba(15,23,42,0.15);
+        }
+
+        .btn-pdf-download {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 18px;
+            background: #059669;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-print {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 18px;
+            background: #4F46E5;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: rgba(255,255,255,0.15);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        /* Dedicated Ticket Card Container */
+        .ticket-card-print {
+            background: #FFFFFF;
+            border: 2px solid #E2E8F0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 0;
+        }
+
+        .ticket-banner {
+            height: 6px;
+            background-color: #4F46E5;
+        }
+
+        .ticket-content {
+            padding: 18px 22px;
+        }
+
+        /* Header Branding */
+        .brand-header-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 14px;
+            border-bottom: 2px solid #F1F5F9;
+            padding-bottom: 12px;
+        }
+
+        .brand-title {
+            font-size: 18px;
+            font-weight: 900;
+            color: #0F172A;
+        }
+
+        .brand-subtitle {
+            font-size: 10px;
+            font-weight: 800;
+            color: #B45309;
+            text-transform: uppercase;
+        }
+
+        .status-badge-paid {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #ECFDF5;
+            color: #059669;
+            border: 1px solid #A7F3D0;
+            border-radius: 16px;
+            font-weight: 800;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .ref-tag {
+            font-size: 11px;
+            font-weight: 800;
+            color: #64748B;
+            margin-top: 4px;
+        }
+
+        .ref-tag strong {
+            color: #0F172A;
+            font-family: Courier, monospace;
+            font-size: 12px;
+        }
+
+        /* Route Banner Box */
+        .route-banner-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #0F172A;
+            color: #FFFFFF;
+            border-radius: 8px;
+            margin-bottom: 14px;
+        }
+
+        .route-banner-table td {
+            padding: 12px 16px;
+            vertical-align: middle;
+        }
+
+        .route-city {
+            font-size: 18px;
+            font-weight: 900;
+            color: #FFFFFF;
+        }
+
+        .route-state {
+            font-size: 10px;
+            font-weight: 700;
+            color: #94A3B8;
+            text-transform: uppercase;
+        }
+
+        .route-arrow-badge {
+            display: inline-block;
+            background-color: #334155;
+            color: #F8FAFC;
+            font-size: 9px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 10px;
+            text-transform: uppercase;
+        }
+
+        /* Ticket Grid Table */
+        .grid-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 14px;
+        }
+
+        .grid-table td {
+            width: 33.33%;
+            padding: 6px 8px;
+            vertical-align: top;
+            border-bottom: 1px solid #F1F5F9;
+        }
+
+        .grid-label {
+            font-size: 9px;
+            font-weight: 800;
+            color: #64748B;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+
+        .grid-value {
+            font-size: 12px;
+            font-weight: 800;
+            color: #0F172A;
+        }
+
+        .grid-subtext {
+            font-size: 9px;
+            color: #64748B;
+        }
+
+        .highlight-text {
+            color: #4F46E5;
+            font-weight: 900;
+        }
+
+        /* Information & Fare Panels */
+        .info-panels-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 14px;
+        }
+
+        .info-panel-cell {
+            width: 50%;
+            vertical-align: top;
+            padding-right: 6px;
+        }
+
+        .info-panel-cell:last-child {
+            padding-right: 0;
+            padding-left: 6px;
+        }
+
+        .info-panel-card {
+            background-color: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 6px;
+            padding: 10px 12px;
+        }
+
+        .panel-heading {
+            font-size: 10px;
+            font-weight: 800;
+            color: #334155;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            border-bottom: 1px solid #E2E8F0;
+            padding-bottom: 3px;
+        }
+
+        .fare-row-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10.5px;
+            color: #475569;
+            margin-bottom: 2px;
+        }
+
+        .fare-row-table td {
+            padding: 2px 0;
+        }
+
+        .fare-total-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            font-weight: 900;
+            color: #4F46E5;
+            border-top: 1.5px solid #CBD5E1;
+            margin-top: 4px;
+        }
+
+        .fare-total-table td {
+            padding-top: 4px;
+        }
+
+        /* Boarding Pass & QR Box */
+        .qr-section-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #FAF5FF;
+            border: 1px solid #E9D5FF;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .qr-cell {
+            width: 95px;
+            vertical-align: middle;
+            text-align: center;
+            padding: 8px;
+        }
+
+        .qr-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 6px;
+            border: 1px solid #D8B4FE;
+            background-color: #FFFFFF;
+        }
+
+        .qr-text-cell {
+            vertical-align: middle;
+            padding: 8px 12px;
+        }
+
+        .qr-title {
+            font-size: 11.5px;
+            font-weight: 800;
+            color: #6B21A8;
+            margin-bottom: 2px;
+        }
+
+        .qr-desc {
+            font-size: 9.5px;
+            color: #7E22CE;
+        }
+
+        .qr-hash {
+            font-size: 8.5px;
+            color: #64748B;
+            font-family: Courier, monospace;
+            margin-top: 3px;
+            font-weight: 700;
+        }
+
+        /* Passenger Guidelines */
+        .guidelines-box {
+            background-color: #FFFBEB;
+            border: 1px solid #FDE68A;
+            border-radius: 6px;
+            padding: 6px 10px;
+            margin-bottom: 12px;
+            font-size: 9px;
+            color: #92400E;
+        }
+
+        /* Footer */
+        .terms-support-table {
+            width: 100%;
+            border-collapse: collapse;
+            border-top: 1px solid #E2E8F0;
+            padding-top: 8px;
+            font-size: 8.5px;
+            color: #64748B;
+        }
+
+        .terms-support-table td {
+            padding-top: 6px;
+            vertical-align: middle;
+        }
+
+        /* ----------------------------------------------------
+           Strict Printing Overrides for Browser print & PDF
+           ---------------------------------------------------- */
+        @media print {
+            body {
+                background: #FFFFFF !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            .print-page-wrapper {
+                max-width: 100% !important;
+                width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            .print-actions-bar {
+                display: none !important;
+            }
+
+            .ticket-card-print {
+                border: 1.5px solid #CBD5E1 !important;
+                box-shadow: none !important;
+                border-radius: 8px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="print-page-wrapper">
+
+        {% if not is_pdf_export %}
+        <!-- Top Screen Action Bar (Automatically Hidden in Print & PDF Download) -->
+        <div class="print-actions-bar">
+            <div style="font-weight:800;font-size:13px;display:flex;align-items:center;gap:8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                Confirmed e-Ticket Pass — Ref: {{ booking.booking_ref }}
+            </div>
+            <div style="display:flex;gap:8px;">
+                <a href="/ticket/{{ booking.booking_ref }}/pdf?download=1" class="btn-pdf-download">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Download Native PDF
+                </a>
+                <button type="button" class="btn-print" onclick="window.print();">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                    Print HTML Pass
+                </button>
+                <a href="/ticket/{{ booking.booking_ref }}" class="btn-back">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                    Back
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Standalone Commercial e-Ticket Container -->
+        <div class="ticket-card-print">
+            <div class="ticket-banner"></div>
+            <div class="ticket-content">
+
+                <!-- Brand Header & Status -->
+                <table class="brand-header-table">
+                    <tr>
+                        <td style="vertical-align:middle;">
+                            <div style="display:inline-block;vertical-align:middle;margin-right:10px;">
+                                {% if logo_base64 %}
+                                <img src="data:image/jpeg;base64,{{ logo_base64 }}" alt="ADS Studio Logo" style="height:34px;width:auto;border-radius:4px;">
+                                {% else %}
+                                <img src="{{ url_for('static', filename='ads_logo_square.jpg') }}" alt="ADS Studio Logo" style="height:34px;width:auto;border-radius:4px;">
+                                {% endif %}
+
+                            </div>
+                            <div style="display:inline-block;vertical-align:middle;">
+                                <div class="brand-title">ADS Transit Pro</div>
+                                <div class="brand-subtitle">Commercial e-Ticket Pass</div>
+                            </div>
+                        </td>
+                        <td style="text-align:right;vertical-align:middle;">
+                            <span class="status-badge-paid">✓ {{ booking.payment_status }}</span>
+                            <div class="ref-tag">Booking Ref: <strong>{{ booking.booking_ref }}</strong></div>
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- Intercity Route Header Banner -->
+                <table class="route-banner-table">
+                    <tr>
+                        <td style="width:40%;text-align:left;">
+                            <div class="route-city">{{ booking.source }}</div>
+                            <div class="route-state">{{ booking.source_state }}</div>
+                        </td>
+                        <td style="width:20%;text-align:center;">
+                            <span class="route-arrow-badge">➜ INTERCITY</span>
+                        </td>
+                        <td style="width:40%;text-align:right;">
+                            <div class="route-city">{{ booking.destination }}</div>
+                            <div class="route-state">{{ booking.destination_state }}</div>
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- Primary Credentials Table Grid -->
+                <table class="grid-table">
+                    <tr>
+                        <td>
+                            <div class="grid-label">Passenger Name</div>
+                            <div class="grid-value">{{ booking.name }}</div>
+                            <div class="grid-subtext">{{ booking.age }} Yrs, {{ booking.gender }}</div>
+                        </td>
+                        <td>
+                            <div class="grid-label">Bus Operator</div>
+                            <div class="grid-value">{{ booking.operator_name }}</div>
+                            <div class="grid-subtext">Bus No: {{ booking.bus_number }}</div>
+                        </td>
+                        <td>
+                            <div class="grid-label">Bus Service Type</div>
+                            <div class="grid-value highlight-text">{{ booking.bus_type }}</div>
+                            <div class="grid-subtext">Commercial Express</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="grid-label">Journey Date</div>
+                            <div class="grid-value">{{ booking.date }}</div>
+                        </td>
+                        <td>
+                            <div class="grid-label">Schedule Time</div>
+                            <div class="grid-value">{{ booking.departure_time }} ➔ {{ booking.arrival_time }}</div>
+                        </td>
+                        <td>
+                            <div class="grid-label">Seat Number(s)</div>
+                            <div class="grid-value highlight-text" style="font-size:14px;">{{ booking.seat_numbers }}</div>
+                            <div class="grid-subtext">{{ booking.passengers_count }} Passenger(s)</div>
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- Info Cards & Fare Summary Table -->
+                <table class="info-panels-table">
+                    <tr>
+                        <td class="info-panel-cell">
+                            <div class="info-panel-card">
+                                <div class="panel-heading">Passenger Contact Info</div>
+                                <div style="margin-bottom:2px;"><strong>Phone:</strong> {{ booking.phone }}</div>
+                                <div style="margin-bottom:2px;"><strong>Email:</strong> {{ booking.email }}</div>
+                                <div style="font-size:8.5px;color:#64748B;margin-top:4px;">* Present valid government photo ID (Aadhaar / Voter ID / DL) during boarding.</div>
+                            </div>
+                        </td>
+                        <td class="info-panel-cell">
+                            <div class="info-panel-card">
+                                <div class="panel-heading">Itemized Fare Breakdown</div>
+                                <table class="fare-row-table">
+                                    <tr>
+                                        <td>Base Fare ({{ booking.passengers_count }} Seat{% if booking.passengers_count > 1 %}s{% endif %})</td>
+                                        <td style="text-align:right;font-weight:700;">₹{{ "%.2f"|format(base_fare) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>GST (5%)</td>
+                                        <td style="text-align:right;font-weight:700;">₹{{ "%.2f"|format(gst) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Convenience Fee</td>
+                                        <td style="text-align:right;font-weight:700;">₹{{ "%.2f"|format(conv_fee) }}</td>
+                                    </tr>
+                                </table>
+                                <table class="fare-total-table">
+                                    <tr>
+                                        <td>Total Paid</td>
+                                        <td style="text-align:right;">₹{{ "%.2f"|format(booking.total_price) }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- Scannable Digital Boarding Pass QR Box -->
+                <table class="qr-section-table">
+                    <tr>
+                        <td class="qr-cell">
+                            <img src="data:image/png;base64,{{ qr_base64 }}" alt="Boarding QR Code" class="qr-img">
+                        </td>
+                        <td class="qr-text-cell">
+                            <div class="qr-title">Digital Boarding Verification Pass</div>
+                            <div class="qr-desc">Present this QR code to the bus conductor upon boarding for instant digital check-in and seat verification.</div>
+                            <div class="qr-hash">SECURITY VERIFICATION CODE: {{ booking.booking_ref }}-VERIFIED-2026</div>
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- Passenger Guidelines -->
+                <div class="guidelines-box">
+                    <strong>Important Travel Instructions:</strong> Please report at the boarding location at least 15 minutes prior to departure. Carrying an electronic or printed copy of this pass is mandatory for check-in.
+                </div>
+
+                <!-- Footer Support Information -->
+                <table class="terms-support-table">
+                    <tr>
+                        <td style="text-align:left;">
+                            Designed & Developed by <strong>ADS Studio</strong> (Arandeep Singh Studio)
+                        </td>
+                        <td style="text-align:right;font-weight:700;color:#0F172A;">
+                            24/7 Helpline: 1800-TRANSIT-PRO | support@adstransitpro.com
+                        </td>
+                    </tr>
+                </table>
+
+            </div>
+        </div>
+
+    </div>
+
+    {% if not is_pdf_export %}
+    <script>
+        // Auto print when requested via query string ?autoprint=1
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('autoprint') === '1') {
+            window.addEventListener('load', function() {
+                setTimeout(function() { window.print(); }, 500);
+            });
+        }
+    </script>
+    {% endif %}
+</body>
+</html>
