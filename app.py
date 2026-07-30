@@ -518,14 +518,18 @@ def trigger_seed():
     flash('Database re-seeded successfully with 787 districts and full bus network!')
     return redirect(url_for('admin'))
 
+import socket
+
+def is_port_in_use(port):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(('127.0.0.1', port)) == 0
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    try:
-        app.run(host='0.0.0.0', port=port, debug=False)
-    except OSError as e:
-        if 'Address already in use' in str(e) or getattr(e, 'errno', None) == 48:
-            print("\n[ADS Transit Pro] Port 5000 is reserved by macOS AirPlay Receiver. Launching on http://127.0.0.1:5050/\n")
-            app.run(host='0.0.0.0', port=5050, debug=False)
-        else:
-            raise e
+    if port == 5000 and is_port_in_use(5000):
+        print("\n[ADS Transit Pro] Port 5000 is in use (macOS AirPlay Receiver). Automatically running on http://127.0.0.1:5050/\n")
+        port = 5050
+
+    app.run(host='0.0.0.0', port=port, debug=False)
+
 
