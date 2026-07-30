@@ -9,11 +9,21 @@
             <li><i data-lucide="chevron-right" style="width:14px;height:14px;"></i></li>
             <li class="active">Search Results</li>
         </ul>
-        <h1 class="page-title">{{ source }} <i data-lucide="arrow-right" style="vertical-align:middle;display:inline-block;margin:0 4px;"></i> {{ destination }}</h1>
-        <p class="page-subtitle">
-            <i data-lucide="calendar" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;"></i>
-            Journey Date: <strong>{{ date }}</strong>
-        </p>
+        <h1 class="page-title">
+            {{ source_district }} <span style="font-size:0.65em;opacity:0.75;">({{ source_state }})</span>
+            <i data-lucide="arrow-right" style="vertical-align:middle;display:inline-block;margin:0 8px;color:var(--primary);"></i> 
+            {{ destination_district }} <span style="font-size:0.65em;opacity:0.75;">({{ destination_state }})</span>
+        </h1>
+        <div style="display:flex;gap:16px;margin-top:8px;font-size:var(--text-sm);color:var(--text-secondary);">
+            <span>
+                <i data-lucide="calendar" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;color:var(--primary);"></i>
+                Date: <strong>{{ date }}</strong>
+            </span>
+            <span>
+                <i data-lucide="users" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;color:var(--accent);"></i>
+                Passengers: <strong>{{ passengers }}</strong>
+            </span>
+        </div>
     </div>
 </div>
 
@@ -21,29 +31,31 @@
 <div class="bus-list-section">
     <div class="container-custom">
         {% if buses %}
-        <!-- Creative Feature: Live Search & Sorting Bar -->
+        <!-- Filter & Sorting Bar -->
         <div class="bus-filter-bar">
             <div>
-                <span style="font-weight:700;font-size:var(--text-sm);color:var(--text);">Available Buses ({{ buses|length }})</span>
+                <span style="font-weight:800;font-size:var(--text-base);color:var(--text);">Available Bus Services ({{ buses|length }})</span>
             </div>
             <div class="bus-filter-group">
                 <!-- Filter Type -->
-                <select id="filterType" class="form-select-custom" style="padding:6px 32px 6px 12px;min-height:36px;font-size:var(--text-xs);" onchange="filterBuses()">
+                <select id="filterType" class="form-select-custom" style="padding:6px 32px 6px 12px;min-height:38px;font-size:var(--text-xs);" onchange="filterBuses()">
                     <option value="All">All Bus Types</option>
+                    <option value="Volvo">Volvo AC</option>
                     <option value="AC">AC Only</option>
                     <option value="Non-AC">Non-AC Only</option>
                     <option value="Sleeper">Sleeper Only</option>
                 </select>
 
                 <!-- Sort By -->
-                <select id="sortBy" class="form-select-custom" style="padding:6px 32px 6px 12px;min-height:36px;font-size:var(--text-xs);" onchange="sortBuses()">
+                <select id="sortBy" class="form-select-custom" style="padding:6px 32px 6px 12px;min-height:38px;font-size:var(--text-xs);" onchange="sortBuses()">
                     <option value="default">Sort by: Recommended</option>
                     <option value="price-low">Price: Low to High</option>
                     <option value="price-high">Price: High to Low</option>
                     <option value="departure">Departure Time</option>
+                    <option value="rating">User Rating</option>
                 </select>
 
-                <a href="/" class="btn-outline-custom" style="padding:6px 16px;min-height:36px;font-size:var(--text-xs);">
+                <a href="/" class="btn-outline-custom" style="padding:6px 16px;min-height:38px;font-size:var(--text-xs);">
                     <i data-lucide="edit-3"></i> Modify Search
                 </a>
             </div>
@@ -51,40 +63,45 @@
 
         <div id="busContainer">
             {% for bus in buses %}
-            <div class="bus-card" data-type="{{ bus.bus_type }}" data-price="{{ bus.price }}" data-dept="{{ bus.departure_time }}">
+            <div class="bus-card" data-type="{{ bus.bus_type }}" data-price="{{ bus.price }}" data-dept="{{ bus.departure_time }}" data-rating="{{ bus.rating }}">
                 <div class="bus-card-left">
                     <div class="bus-card-header">
-                        <span class="bus-name">{{ bus.bus_number }}</span>
-                        <span class="bus-type-badge {% if bus.bus_type == 'AC' %}bus-type-ac{% elif bus.bus_type == 'Non-AC' %}bus-type-nonac{% else %}bus-type-sleeper{% endif %}">
+                        <div style="display:flex;flex-direction:column;">
+                            <span class="bus-name" style="font-size:var(--text-base);font-weight:800;color:var(--text);">{{ bus.operator_name }}</span>
+                            <span style="font-size:0.75rem;color:var(--text-muted);font-weight:600;">{{ bus.bus_number }}</span>
+                        </div>
+                        <span class="bus-type-badge {% if 'AC' in bus.bus_type %}bus-type-ac{% elif 'Non-AC' in bus.bus_type %}bus-type-nonac{% else %}bus-type-sleeper{% endif %}">
                             {{ bus.bus_type }}
                         </span>
                         <span class="badge-custom badge-neutral">
                             <i data-lucide="armchair" style="width:12px;height:12px;"></i>
-                            {{ bus.total_seats }} total seats
+                            {{ bus.available_seats }} seats left of {{ bus.total_seats }}
                         </span>
                     </div>
 
                     <div class="bus-timeline">
                         <div>
                             <div class="bus-time-value">{{ bus.departure_time }}</div>
-                            <div class="bus-time-label">{{ source }}</div>
+                            <div class="bus-time-label">{{ source_district }}</div>
                         </div>
-                        <div class="bus-timeline-line"></div>
+                        <div class="bus-timeline-line">
+                            <span style="font-size:0.65rem;color:var(--text-muted);font-weight:700;">{{ bus.estimated_duration_hrs }} hrs</span>
+                        </div>
                         <div>
                             <div class="bus-time-value">{{ bus.arrival_time }}</div>
-                            <div class="bus-time-label">{{ destination }}</div>
+                            <div class="bus-time-label">{{ destination_district }}</div>
                         </div>
                     </div>
 
                     <div class="bus-amenities">
-                        {% if 'AC' in bus.bus_type or 'Sleeper' in bus.bus_type %}
+                        {% if 'AC' in bus.bus_type %}
                         <span class="amenity-tag" title="Air Conditioned"><i data-lucide="wind" style="width:12px;height:12px;"></i> AC</span>
                         {% endif %}
                         <span class="amenity-tag" title="High-Speed WiFi"><i data-lucide="wifi" style="width:12px;height:12px;"></i> WiFi</span>
                         <span class="amenity-tag" title="Charging Port"><i data-lucide="zap" style="width:12px;height:12px;"></i> Charging</span>
                         <span class="amenity-tag" title="CCTV Monitored"><i data-lucide="shield" style="width:12px;height:12px;"></i> CCTV</span>
-                        {% if bus.bus_type == 'Sleeper' %}
-                        <span class="amenity-tag" title="Reclining Sleeper Berth"><i data-lucide="bed" style="width:12px;height:12px;"></i> Sleeper</span>
+                        {% if 'Sleeper' in bus.bus_type %}
+                        <span class="amenity-tag" title="Sleeper Berth"><i data-lucide="bed" style="width:12px;height:12px;"></i> Sleeper</span>
                         {% endif %}
                     </div>
                 </div>
@@ -92,32 +109,40 @@
                 <div class="bus-card-right">
                     <div style="display:flex;align-items:center;gap:4px;font-weight:700;font-size:var(--text-xs);color:var(--warning);">
                         <i data-lucide="star" style="width:14px;height:14px;" fill="currentColor"></i>
-                        <span>4.{{ (loop.index % 3) + 7 }} / 5</span>
+                        <span>{{ bus.rating }} / 5.0</span>
                     </div>
 
                     <div style="text-align:right;">
-                        <div class="bus-price-value">₹{{ bus.price }}</div>
+                        <div class="bus-price-value">₹{{ "%.0f"|format(bus.price) }}</div>
                         <div class="bus-price-label">per passenger</div>
                     </div>
 
+                    {% if bus.available_seats > 0 %}
                     <span class="badge-custom badge-success" style="font-size:var(--text-xs);">
-                        <i data-lucide="check" style="width:12px;height:12px;"></i> Seats Available
+                        <i data-lucide="check" style="width:12px;height:12px;"></i> Available
                     </span>
-
                     <a href="/book/{{ bus.id }}?date={{ date }}" class="btn-primary-gradient" style="width:100%;">
                         Select Seats <i data-lucide="arrow-right"></i>
                     </a>
+                    {% else %}
+                    <span class="badge-custom badge-danger" style="font-size:var(--text-xs);">
+                        <i data-lucide="x-circle" style="width:12px;height:12px;"></i> Sold Out
+                    </span>
+                    <button class="btn-secondary-custom" disabled style="width:100%;opacity:0.6;">
+                        Sold Out
+                    </button>
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}
         </div>
 
         {% else %}
-        <!-- Empty State -->
+        <!-- Empty State (Fallback if ever reached) -->
         <div style="text-align:center;padding:64px 20px;background:var(--card);border-radius:var(--radius-2xl);border:1px solid var(--border);">
             <i data-lucide="bus-front" style="width:64px;height:64px;color:var(--text-muted);margin-bottom:16px;"></i>
             <h3 style="font-size:var(--text-xl);font-weight:800;margin-bottom:8px;">No Buses Available</h3>
-            <p style="color:var(--text-secondary);margin-bottom:24px;">We couldn't find any buses running between {{ source }} and {{ destination }} on {{ date }}.</p>
+            <p style="color:var(--text-secondary);margin-bottom:24px;">We couldn't find any buses running between {{ source_district }} and {{ destination_district }} on {{ date }}.</p>
             <a href="/" class="btn-primary-gradient"><i data-lucide="search"></i> Search Different Date / Route</a>
         </div>
         {% endif %}
@@ -131,7 +156,8 @@
         const type = document.getElementById('filterType').value;
         const cards = document.querySelectorAll('.bus-card');
         cards.forEach(card => {
-            if (type === 'All' || card.getAttribute('data-type') === type) {
+            const cardType = card.getAttribute('data-type');
+            if (type === 'All' || cardType.includes(type)) {
                 card.style.display = 'grid';
             } else {
                 card.style.display = 'none';
@@ -150,6 +176,8 @@
             cards.sort((a, b) => parseFloat(b.getAttribute('data-price')) - parseFloat(a.getAttribute('data-price')));
         } else if (sortBy === 'departure') {
             cards.sort((a, b) => a.getAttribute('data-dept').localeCompare(b.getAttribute('data-dept')));
+        } else if (sortBy === 'rating') {
+            cards.sort((a, b) => parseFloat(b.getAttribute('data-rating')) - parseFloat(a.getAttribute('data-rating')));
         }
 
         cards.forEach(card => container.appendChild(card));

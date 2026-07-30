@@ -29,17 +29,18 @@
 
         <!-- Bus Details Banner -->
         <div class="bus-info-banner">
-            <div style="display:flex;align-items:center;gap:12px;">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
                 <div style="font-weight:900;font-size:var(--text-lg);color:var(--text);">{{ bus.source }}</div>
                 <i data-lucide="arrow-right" style="color:var(--primary);"></i>
                 <div style="font-weight:900;font-size:var(--text-lg);color:var(--text);">{{ bus.destination }}</div>
+                <span class="badge-custom badge-neutral" style="font-size:0.75rem;">{{ bus.source_state }} → {{ bus.destination_state }}</span>
             </div>
 
             <div style="display:flex;align-items:center;gap:var(--space-md);flex-wrap:wrap;">
-                <span class="badge-custom badge-primary"><i data-lucide="bus"></i> {{ bus.bus_number }}</span>
+                <span class="badge-custom badge-primary"><i data-lucide="bus"></i> {{ bus.operator_name }} ({{ bus.bus_number }})</span>
                 <span class="badge-custom badge-accent">{{ bus.bus_type }}</span>
                 <span style="font-size:var(--text-xs);color:var(--text-secondary);">
-                    <i data-lucide="clock" style="width:12px;height:12px;vertical-align:middle;"></i> {{ bus.departure_time }} → {{ bus.arrival_time }}
+                    <i data-lucide="clock" style="width:12px;height:12px;vertical-align:middle;"></i> {{ bus.departure_time }} → {{ bus.arrival_time }} ({{ bus.estimated_duration_hrs }}h)
                 </span>
                 <span style="font-size:var(--text-xs);color:var(--text-secondary);">
                     <i data-lucide="calendar" style="width:12px;height:12px;vertical-align:middle;"></i> {{ date }}
@@ -59,7 +60,7 @@
                     <div class="seat-section">
                         <div class="seat-section-title">
                             <i data-lucide="armchair" style="color:var(--primary);"></i>
-                            Select Your Seats (Airline View)
+                            Select Your Seat(s) — {{ bus.bus_type }} ({{ bus.seat_layout }} Layout)
                         </div>
 
                         <!-- Bus Blueprint Outer Container -->
@@ -70,10 +71,10 @@
                                     <div style="width:28px;height:28px;border-radius:50%;background:var(--bg-alt);display:flex;align-items:center;justify-content:center;">
                                         <i data-lucide="user-check" style="width:14px;height:14px;"></i>
                                     </div>
-                                    Driver
+                                    Driver Cabin
                                 </div>
                                 <span class="badge-custom badge-neutral" style="font-size:0.65rem;">
-                                    <i data-lucide="log-in" style="width:10px;height:10px;"></i> Entry Door
+                                    <i data-lucide="log-in" style="width:10px;height:10px;"></i> Entrance Door
                                 </span>
                             </div>
 
@@ -87,15 +88,23 @@
                                             <span>{{ seat_id }}</span>
                                         </div>
                                     {% else %}
-                                        <div class="seat available" data-seat="{{ seat_id }}" onclick="toggleSeat(this)" title="Seat {{ seat_id }} — ₹{{ bus.price }}" aria-label="Seat {{ seat_id }}, available for ₹{{ bus.price }}" role="button" tabindex="0">
+                                        <div class="seat available" data-seat="{{ seat_id }}" onclick="toggleSeat(this)" title="Seat {{ seat_id }} — ₹{{ '%.0f'|format(bus.price) }}" aria-label="Seat {{ seat_id }}, available for ₹{{ '%.0f'|format(bus.price) }}" role="button" tabindex="0">
                                             <span>{{ seat_id }}</span>
                                         </div>
                                     {% endif %}
 
-                                    {% if loop.index % 4 == 2 %}
-                                        <div style="display:flex;align-items:center;justify-content:center;color:var(--border);">
-                                            <div style="width:1px;height:100%;background:var(--border);"></div>
-                                        </div>
+                                    {% if bus.seat_layout == '2x1' %}
+                                        {% if loop.index % 3 == 1 %}
+                                            <div style="display:flex;align-items:center;justify-content:center;color:var(--border);">
+                                                <div style="width:1px;height:100%;background:var(--border);"></div>
+                                            </div>
+                                        {% endif %}
+                                    {% else %}
+                                        {% if loop.index % 4 == 2 %}
+                                            <div style="display:flex;align-items:center;justify-content:center;color:var(--border);">
+                                                <div style="width:1px;height:100%;background:var(--border);"></div>
+                                            </div>
+                                        {% endif %}
                                     {% endif %}
                                 {% endfor %}
                             </div>
@@ -105,7 +114,7 @@
                         <div class="seat-legend">
                             <div class="legend-item"><div class="legend-swatch legend-available"></div> Available</div>
                             <div class="legend-item"><div class="legend-swatch legend-selected"></div> Selected</div>
-                            <div class="legend-item"><div class="legend-swatch legend-booked"></div> Booked</div>
+                            <div class="legend-item"><div class="legend-swatch legend-booked"></div> Booked / Reserved</div>
                         </div>
                     </div>
 
@@ -121,7 +130,7 @@
                                 <label for="name">Full Name</label>
                                 <div style="position:relative;">
                                     <i data-lucide="user" class="input-icon"></i>
-                                    <input type="text" name="name" id="name" class="form-input-custom" placeholder="Enter passenger full name" required>
+                                    <input type="text" name="name" id="name" class="form-input-custom" placeholder="Enter passenger primary name" required>
                                 </div>
                             </div>
                         </div>
@@ -131,7 +140,7 @@
                                 <label for="age">Age</label>
                                 <div style="position:relative;">
                                     <i data-lucide="calendar" class="input-icon"></i>
-                                    <input type="number" name="age" id="age" class="form-input-custom" placeholder="Age" min="1" max="120" required>
+                                    <input type="number" name="age" id="age" class="form-input-custom" placeholder="Age" min="1" max="120" value="28" required>
                                 </div>
                             </div>
                             <div class="form-group-custom">
@@ -152,14 +161,14 @@
                                 <label for="phone">Phone Number</label>
                                 <div style="position:relative;">
                                     <i data-lucide="phone" class="input-icon"></i>
-                                    <input type="tel" name="phone" id="phone" class="form-input-custom" placeholder="+91 XXXXX XXXXX" required>
+                                    <input type="tel" name="phone" id="phone" class="form-input-custom" placeholder="+91 XXXXX XXXXX" value="+91 98765 43210" required>
                                 </div>
                             </div>
                             <div class="form-group-custom">
-                                <label for="email">Email Address</label>
+                                <label for="email">Email Address (for e-Ticket)</label>
                                 <div style="position:relative;">
                                     <i data-lucide="mail" class="input-icon"></i>
-                                    <input type="email" name="email" id="email" class="form-input-custom" placeholder="your@email.com" required>
+                                    <input type="email" name="email" id="email" class="form-input-custom" placeholder="your@email.com" value="passenger@example.com" required>
                                 </div>
                             </div>
                         </div>
@@ -170,15 +179,15 @@
                         <div class="seat-section-title">
                             <i data-lucide="credit-card" style="color:var(--primary);"></i>
                             Payment Simulation
-                            <span class="badge-custom badge-success" style="margin-left:auto;"><i data-lucide="lock"></i> Secure</span>
+                            <span class="badge-custom badge-success" style="margin-left:auto;"><i data-lucide="lock"></i> 256-Bit SSL Encrypted</span>
                         </div>
 
                         <div class="form-row form-row-full" style="margin-bottom:var(--space-md);">
                             <div class="form-group-custom">
-                                <label for="cardNum">Card Number (Dummy)</label>
+                                <label for="cardNum">Card Number (Demo Sandbox)</label>
                                 <div style="position:relative;">
                                     <i data-lucide="credit-card" class="input-icon"></i>
-                                    <input type="text" id="cardNum" class="form-input-custom" placeholder="1234 5678 9101 1121" required>
+                                    <input type="text" id="cardNum" class="form-input-custom" placeholder="4532 •••• •••• 8892" value="4532 8821 9011 8892" required>
                                 </div>
                             </div>
                         </div>
@@ -188,14 +197,14 @@
                                 <label for="cardExp">Expiry Date</label>
                                 <div style="position:relative;">
                                     <i data-lucide="calendar" class="input-icon"></i>
-                                    <input type="text" id="cardExp" class="form-input-custom" placeholder="MM/YY" required>
+                                    <input type="text" id="cardExp" class="form-input-custom" placeholder="MM/YY" value="12/28" required>
                                 </div>
                             </div>
                             <div class="form-group-custom">
                                 <label for="cardCVV">CVV Code</label>
                                 <div style="position:relative;">
                                     <i data-lucide="lock" class="input-icon"></i>
-                                    <input type="password" id="cardCVV" class="form-input-custom" placeholder="123" maxlength="4" required>
+                                    <input type="password" id="cardCVV" class="form-input-custom" placeholder="123" maxlength="4" value="882" required>
                                 </div>
                             </div>
                         </div>
@@ -235,10 +244,6 @@
                                 <span class="summary-total-value" id="totalAmount">₹0.00</span>
                             </div>
 
-                            <!-- Compatibility displays for legacy script bindings -->
-                            <input type="text" id="selectedSeatsDisplay" style="display:none;" readonly>
-                            <input type="text" id="totalPriceDisplay" style="display:none;" readonly value="₹0.00">
-
                             <button type="button" onclick="submitForm()" class="btn-success-gradient" style="width:100%;margin-top:var(--space-md);">
                                 <i data-lucide="check-circle"></i> Confirm & Pay
                             </button>
@@ -271,14 +276,12 @@
 
     function updateForm() {
         document.getElementById('selectedSeatsInput').value = selectedSeats.join(',');
-        document.getElementById('selectedSeatsDisplay').value = selectedSeats.length > 0 ? selectedSeats.join(', ') : 'No seats selected';
-        
+
         const baseFare = selectedSeats.length * pricePerSeat;
         const gst = baseFare * 0.05;
         const convFee = selectedSeats.length > 0 ? 29 : 0;
         const total = baseFare + gst + convFee;
 
-        document.getElementById('totalPriceDisplay').value = '₹' + baseFare.toFixed(2);
         document.getElementById('baseFare').textContent = '₹' + baseFare.toFixed(2);
         document.getElementById('gstAmount').textContent = '₹' + gst.toFixed(2);
         document.getElementById('convFee').textContent = selectedSeats.length > 0 ? '₹29.00' : '₹0.00';
@@ -316,7 +319,7 @@
             form.submit();
         } else {
             form.reportValidity();
-            showToast('Please fill in all required passenger & payment details.', 'danger');
+            showToast('Please fill in all required passenger details.', 'danger');
         }
     }
 </script>

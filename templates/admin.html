@@ -5,12 +5,21 @@
     <div class="container-custom">
 
         <!-- Admin Header -->
-        <div style="margin-bottom:var(--space-lg);">
-            <h1 class="page-title" style="color:var(--text);">
-                <i data-lucide="layout-dashboard" style="vertical-align:middle;color:var(--primary);margin-right:8px;"></i>
-                Admin Dashboard
-            </h1>
-            <p style="color:var(--text-secondary);font-size:var(--text-sm);">Manage buses, routes, and passenger bookings across India.</p>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-lg);flex-wrap:wrap;gap:var(--space-md);">
+            <div>
+                <h1 class="page-title" style="color:var(--text);margin-bottom:4px;">
+                    <i data-lucide="layout-dashboard" style="vertical-align:middle;color:var(--primary);margin-right:8px;"></i>
+                    Admin Dashboard
+                </h1>
+                <p style="color:var(--text-secondary);font-size:var(--text-sm);">Manage 787 districts, transport routes, buses, and bookings across India.</p>
+            </div>
+            <div>
+                <form action="/admin/seed_db" method="POST" onsubmit="return confirm('Are you sure you want to re-seed the database? This will refresh all routes and buses.');">
+                    <button type="submit" class="btn-secondary-custom" style="padding:8px 16px;font-size:var(--text-xs);border-color:var(--primary);color:var(--primary);">
+                        <i data-lucide="refresh-cw"></i> Re-Seed Database
+                    </button>
+                </form>
+            </div>
         </div>
 
         <!-- Dashboard Stats Cards -->
@@ -25,7 +34,7 @@
             <div class="admin-stat-card">
                 <div class="admin-stat-icon green"><i data-lucide="indian-rupee"></i></div>
                 <div>
-                    <div style="font-size:var(--text-xl);font-weight:900;">₹{% set total_rev = [] %}{% for b in bookings %}{% if total_rev.append(b.total_price) %}{% endif %}{% endfor %}{{ total_rev|sum|int if total_rev else 0 }}</div>
+                    <div style="font-size:var(--text-xl);font-weight:900;">₹{% set total_rev = [] %}{% for b in bookings %}{% if total_rev.append(b.total_price) %}{% endif %}{% endfor %}{{ "%.0f"|format(total_rev|sum) if total_rev else '0' }}</div>
                     <div style="font-size:var(--text-xs);color:var(--text-muted);font-weight:600;">Total Revenue</div>
                 </div>
             </div>
@@ -56,6 +65,9 @@
             <button type="button" class="admin-tab" data-tab="routes" role="tab" aria-selected="false">
                 <i data-lucide="map-pin" style="width:16px;height:16px;vertical-align:middle;"></i> Manage Routes
             </button>
+            <button type="button" class="admin-tab" data-tab="districts" role="tab" aria-selected="false">
+                <i data-lucide="globe" style="width:16px;height:16px;vertical-align:middle;"></i> States & Districts (787)
+            </button>
         </div>
 
         <!-- Tab Panel 1: All Bookings -->
@@ -67,7 +79,7 @@
                             <th>Ref Code</th>
                             <th>Passenger</th>
                             <th>Route</th>
-                            <th>Bus No</th>
+                            <th>Operator / Bus</th>
                             <th>Date</th>
                             <th>Seats</th>
                             <th>Amount</th>
@@ -78,12 +90,12 @@
                         {% for b in bookings %}
                         <tr>
                             <td data-label="Ref Code"><span class="badge-custom badge-primary" style="font-family:var(--font-mono);">{{ b.booking_ref }}</span></td>
-                            <td data-label="Passenger" style="font-weight:700;">{{ b.name }}</td>
-                            <td data-label="Route">{{ b.source }} → {{ b.destination }}</td>
-                            <td data-label="Bus No">{{ b.bus_number }}</td>
+                            <td data-label="Passenger" style="font-weight:700;">{{ b.name }}<br><span style="font-size:0.7rem;color:var(--text-muted);">{{ b.email }}</span></td>
+                            <td data-label="Route">{{ b.source_district }} → {{ b.destination_district }}</td>
+                            <td data-label="Bus">{{ b.operator_name }} ({{ b.bus_number }})</td>
                             <td data-label="Date">{{ b.date }}</td>
                             <td data-label="Seats"><span class="badge-custom badge-accent">{{ b.seat_numbers }}</span></td>
-                            <td data-label="Amount" style="font-weight:800;color:var(--primary);">₹{{ b.total_price }}</td>
+                            <td data-label="Amount" style="font-weight:800;color:var(--primary);">₹{{ "%.2f"|format(b.total_price) }}</td>
                             <td data-label="Status"><span class="badge-custom badge-success">{{ b.payment_status }}</span></td>
                         </tr>
                         {% else %}
@@ -107,24 +119,29 @@
                     <div class="admin-form-body">
                         <form action="/admin/add_bus" method="POST">
                             <div class="admin-form-group">
-                                <label for="bus_number">Bus Number</label>
-                                <input type="text" name="bus_number" id="bus_number" class="admin-form-input" required placeholder="e.g. VOLVO-990">
+                                <label for="operator_name">Bus Operator</label>
+                                <input type="text" name="operator_name" id="operator_name" class="admin-form-input" required placeholder="e.g. Zingbus / KSRTC / ADS Express">
                             </div>
                             <div class="admin-form-group">
-                                <label for="route_id">Route</label>
+                                <label for="bus_number">Bus Registration Number</label>
+                                <input type="text" name="bus_number" id="bus_number" class="admin-form-input" required placeholder="e.g. DL-01-AB-9988">
+                            </div>
+                            <div class="admin-form-group">
+                                <label for="route_id">Assigned Route</label>
                                 <select name="route_id" id="route_id" class="admin-form-input" required>
                                     <option value="" disabled selected>Select Route</option>
                                     {% for r in routes %}
-                                    <option value="{{ r.id }}">{{ r.source }} → {{ r.destination }}</option>
+                                    <option value="{{ r.id }}">{{ r.source_district }} ({{ r.source_state }}) → {{ r.destination_district }} ({{ r.destination_state }})</option>
                                     {% endfor %}
                                 </select>
                             </div>
                             <div class="admin-form-group">
-                                <label for="bus_type">Bus Type</label>
+                                <label for="bus_type">Bus Type & Layout</label>
                                 <select name="bus_type" id="bus_type" class="admin-form-input" required>
-                                    <option value="AC">AC</option>
-                                    <option value="Non-AC">Non-AC</option>
-                                    <option value="Sleeper">Sleeper</option>
+                                    <option value="Volvo Multi-Axle AC (2+2)">Volvo Multi-Axle AC (2+2)</option>
+                                    <option value="AC Sleeper (2+1)">AC Sleeper (2+1)</option>
+                                    <option value="Luxury Semi-Sleeper AC (2+2)">Luxury Semi-Sleeper AC (2+2)</option>
+                                    <option value="Non-AC Seater (2+2)">Non-AC Seater (2+2)</option>
                                 </select>
                             </div>
                             <div class="admin-form-group">
@@ -134,19 +151,19 @@
                             <div class="form-row" style="margin-bottom:var(--space-md);">
                                 <div class="admin-form-group">
                                     <label for="departure_time">Departure</label>
-                                    <input type="time" name="departure_time" id="departure_time" class="admin-form-input" required>
+                                    <input type="time" name="departure_time" id="departure_time" class="admin-form-input" required value="08:00">
                                 </div>
                                 <div class="admin-form-group">
                                     <label for="arrival_time">Arrival</label>
-                                    <input type="time" name="arrival_time" id="arrival_time" class="admin-form-input" required>
+                                    <input type="time" name="arrival_time" id="arrival_time" class="admin-form-input" required value="16:00">
                                 </div>
                             </div>
                             <div class="admin-form-group">
                                 <label for="price">Price per Seat (₹)</label>
-                                <input type="number" step="0.01" name="price" id="price" class="admin-form-input" required placeholder="e.g. 1200">
+                                <input type="number" step="1" name="price" id="price" class="admin-form-input" required placeholder="e.g. 850">
                             </div>
                             <button type="submit" class="btn-primary-gradient" style="width:100%;">
-                                <i data-lucide="plus"></i> Save Bus
+                                <i data-lucide="plus"></i> Save Bus Service
                             </button>
                         </form>
                     </div>
@@ -157,23 +174,23 @@
                     <table class="admin-table">
                         <thead>
                             <tr>
-                                <th>Bus Number</th>
+                                <th>Operator & Bus No</th>
                                 <th>Route</th>
                                 <th>Type</th>
                                 <th>Seats</th>
                                 <th>Schedule</th>
-                                <th>Price</th>
+                                <th>Fare</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for b in buses %}
                             <tr>
-                                <td data-label="Bus Number" style="font-weight:700;">{{ b.bus_number }}</td>
-                                <td data-label="Route">{{ b.source }} → {{ b.destination }}</td>
+                                <td data-label="Bus" style="font-weight:700;">{{ b.operator_name }}<br><span style="font-size:0.7rem;color:var(--text-muted);">{{ b.bus_number }}</span></td>
+                                <td data-label="Route">{{ b.source_district }} → {{ b.destination_district }}</td>
                                 <td data-label="Type"><span class="badge-custom badge-accent">{{ b.bus_type }}</span></td>
                                 <td data-label="Seats">{{ b.total_seats }}</td>
                                 <td data-label="Schedule">{{ b.departure_time }} — {{ b.arrival_time }}</td>
-                                <td data-label="Price" style="font-weight:800;color:var(--primary);">₹{{ b.price }}</td>
+                                <td data-label="Fare" style="font-weight:800;color:var(--primary);">₹{{ "%.0f"|format(b.price) }}</td>
                             </tr>
                             {% else %}
                             <tr>
@@ -192,30 +209,40 @@
                 <!-- Add Route Form Card -->
                 <div class="admin-form-card">
                     <div class="admin-form-header">
-                        <i data-lucide="plus-circle" style="vertical-align:middle;margin-right:6px;"></i> Add New Route
+                        <i data-lucide="plus-circle" style="vertical-align:middle;margin-right:6px;"></i> Add District Route
                     </div>
                     <div class="admin-form-body">
                         <form action="/admin/add_route" method="POST">
                             <div class="admin-form-group">
-                                <label for="src_state">Source State</label>
-                                <select name="source" id="src_state" class="admin-form-input" required>
-                                    <option value="" disabled selected>Select Source</option>
-                                    {% for state in indian_states %}
-                                    <option value="{{ state }}">{{ state }}</option>
+                                <label for="source_district_id">Source District</label>
+                                <select name="source_district_id" id="source_district_id" class="admin-form-input" required>
+                                    <option value="" disabled selected>Select Source District</option>
+                                    {% for d in districts %}
+                                    <option value="{{ d.id }}">{{ d.name }} ({{ d.state_name }})</option>
                                     {% endfor %}
                                 </select>
                             </div>
                             <div class="admin-form-group">
-                                <label for="dest_state">Destination State</label>
-                                <select name="destination" id="dest_state" class="admin-form-input" required>
-                                    <option value="" disabled selected>Select Destination</option>
-                                    {% for state in indian_states %}
-                                    <option value="{{ state }}">{{ state }}</option>
+                                <label for="destination_district_id">Destination District</label>
+                                <select name="destination_district_id" id="destination_district_id" class="admin-form-input" required>
+                                    <option value="" disabled selected>Select Destination District</option>
+                                    {% for d in districts %}
+                                    <option value="{{ d.id }}">{{ d.name }} ({{ d.state_name }})</option>
                                     {% endfor %}
                                 </select>
                             </div>
+                            <div class="form-row" style="margin-bottom:var(--space-md);">
+                                <div class="admin-form-group">
+                                    <label for="distance_km">Distance (KM)</label>
+                                    <input type="number" name="distance_km" id="distance_km" class="admin-form-input" required value="350">
+                                </div>
+                                <div class="admin-form-group">
+                                    <label for="estimated_duration_hrs">Duration (Hrs)</label>
+                                    <input type="number" step="0.5" name="estimated_duration_hrs" id="estimated_duration_hrs" class="admin-form-input" required value="7.5">
+                                </div>
+                            </div>
                             <button type="submit" class="btn-primary-gradient" style="width:100%;">
-                                <i data-lucide="plus"></i> Save Route
+                                <i data-lucide="plus"></i> Create Route
                             </button>
                         </form>
                     </div>
@@ -226,26 +253,70 @@
                     <table class="admin-table">
                         <thead>
                             <tr>
-                                <th>Route ID</th>
-                                <th>Source State</th>
-                                <th>Destination State</th>
+                                <th>ID</th>
+                                <th>Source District</th>
+                                <th>Destination District</th>
+                                <th>Distance</th>
+                                <th>Duration</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for r in routes %}
                             <tr>
-                                <td data-label="Route ID"><span class="badge-custom badge-neutral">#{{ r.id }}</span></td>
-                                <td data-label="Source State" style="font-weight:700;">{{ r.source }}</td>
-                                <td data-label="Destination State" style="font-weight:700;">{{ r.destination }}</td>
+                                <td data-label="ID"><span class="badge-custom badge-neutral">#{{ r.id }}</span></td>
+                                <td data-label="Source" style="font-weight:700;">{{ r.source_district }} <span style="font-size:0.7rem;color:var(--text-muted);">({{ r.source_state }})</span></td>
+                                <td data-label="Destination" style="font-weight:700;">{{ r.destination_district }} <span style="font-size:0.7rem;color:var(--text-muted);">({{ r.destination_state }})</span></td>
+                                <td data-label="Distance">{{ r.distance_km }} km</td>
+                                <td data-label="Duration">{{ r.estimated_duration_hrs }} hrs</td>
                             </tr>
                             {% else %}
                             <tr>
-                                <td colspan="3" style="text-align:center;padding:32px;color:var(--text-muted);">No routes configured yet.</td>
+                                <td colspan="5" style="text-align:center;padding:32px;color:var(--text-muted);">No routes configured yet.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+
+        <!-- Tab Panel 4: States & Districts -->
+        <div class="tab-panel" id="panel-districts" role="tabpanel">
+            <div class="admin-table-card responsive-table">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>District Name</th>
+                            <th>State / Union Territory</th>
+                            <th>Type</th>
+                            <th>Classification</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in districts %}
+                        <tr>
+                            <td data-label="#"><span class="badge-custom badge-neutral">{{ loop.index }}</span></td>
+                            <td data-label="District" style="font-weight:700;">{{ d.name }}</td>
+                            <td data-label="State">{{ d.state_name }}</td>
+                            <td data-label="Type">
+                                {% if 'Territory' in d.state_name or d.state_name in ['Delhi (NCT)', 'Chandigarh', 'Ladakh', 'Puducherry', 'Jammu and Kashmir', 'Dadra and Nagar Haveli and Daman and Diu', 'Andaman and Nicobar Islands', 'Lakshadweep'] %}
+                                <span class="badge-custom badge-accent">Union Territory</span>
+                                {% else %}
+                                <span class="badge-custom badge-primary">State</span>
+                                {% endif %}
+                            </td>
+                            <td data-label="Classification">
+                                {% if d.is_major %}
+                                <span class="badge-custom badge-gold"><i data-lucide="star" style="width:10px;height:10px;"></i> Major Hub</span>
+                                {% else %}
+                                <span class="badge-custom badge-neutral">District</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
 
